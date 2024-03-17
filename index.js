@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 const express = require("express");
+
+const config = require("./config");
+
 const Product = require('./models/Product'); // Import Product model
 const productRouter = require('./routes/products'); // Import product routes
 
