@@ -2,10 +2,12 @@ const mongoose = require("mongoose");
 const express = require("express");
 const userRoute = require("./routes/userRoute");
 
+const config = require("./config");
+
 const app = express();
 app.use(express.json());
 
-const dbURI = ``;
+const dbURI = `mongodb+srv://${config.dbUsername}:${config.dbPassword}@test.vxujlr8.mongodb.net/?retryWrites=true&w=majority&appName=test`;
 
 mongoose
     .connect(dbURI)
