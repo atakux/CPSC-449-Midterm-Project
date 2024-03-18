@@ -2,12 +2,40 @@ const express = require("express");
 const router = express.Router();
 const Product = require('../models/Product');
 
+const config = require('../config');
+
+// Middleware for basic authentication
+const basicAuth = (req, res, next) => {
+  // Extract username and password from request headers
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+      res.status(401).send('Unauthorized');
+      return;
+  }
+
+  // Decode base64 encoded credentials
+  const base64Credentials = authHeader.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  // Check if username and password match
+  if (username === config.dbUsername && password === config.dbPassword) {
+      // Authorized, proceed to the next middleware
+      next();
+  } else {
+      res.status(401).send('Unauthorized');
+  }
+};
+
+// Apply basic authentication middleware to routes that require it
+router.use(basicAuth);
+
 // Before all '/' should be "products"
 
 // Create a new product
 //  enter the new data in "body > raw" 
 //  then send a "POST" request to create a new product
-router.post('/', async (req, res) => {
+router.post('/', basicAuth, async (req, res) => {
     try {
         const product = new Product(req.body);
         await product.save();
@@ -38,7 +66,7 @@ router.get('/:id', getProduct, (req, res) => {
 // Update a product 
 //  replace ":id" with the id of the product to update,
 //  then send a "POST" request with the updated data
-router.patch('/:id', getProduct, async (req, res) => {
+router.patch('/:id', basicAuth, getProduct, async (req, res) => {
     if (req.body.name != null) {
         res.product.name = req.body.name;
     }
@@ -61,7 +89,7 @@ router.patch('/:id', getProduct, async (req, res) => {
 // Delete a product
 //  replace ":id" with the id of the product to delete
 //  then send a "DELETE" request
-router.delete('/:id', getProduct, async (req, res) => {
+router.delete('/:id', basicAuth, getProduct, async (req, res) => {
     try {
         await res.product.deleteOne();
         res.json({ message: 'Product deleted' });
