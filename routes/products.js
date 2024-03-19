@@ -27,9 +27,6 @@ const basicAuth = (req, res, next) => {
   }
 };
 
-// Apply basic authentication middleware to routes that require it
-router.use(basicAuth);
-
 // Before all '/' should be "products"
 
 // Create a new product
