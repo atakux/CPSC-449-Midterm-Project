@@ -1,13 +1,6 @@
 const mongoose = require("mongoose");
 const express = require("express");
 
-const config = require("./config");
-
-const Product = require('./models/Product'); // Import Product model
-const productRouter = require('./routes/products'); // Import product routes
-
-const config = require("./config");
-
 const Product = require('./models/Product'); // Import Product model
 const productRouter = require('./routes/products'); // Import product routes
 
@@ -17,7 +10,8 @@ const app = express();
 app.use(express.json())
 
 
-const dbURI = `mongodb+srv://${dbUsername}:${dbPassword}@test.vxujlr8.mongodb.net/?retryWrites=true&w=majority&appName=test`;
+const dbURI = `mongodb+srv://${config.dbUsername}:${config.dbPassword}@test.vxujlr8.mongodb.net/?retryWrites=true&w=majority&appName=test`;
+
 mongoose
   .connect(dbURI, {
     useNewUrlParser: true,
