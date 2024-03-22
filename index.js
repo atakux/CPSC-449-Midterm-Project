@@ -9,6 +9,7 @@
 const mongoose = require("mongoose");
 const express = require("express");
 
+const userRoute = require("./routes/userRoute"); // Import user routes
 const Product = require('./models/Product'); // Import Product model
 const productRouter = require('./routes/products'); // Import product routes
 
@@ -16,7 +17,7 @@ const productRouter = require('./routes/products'); // Import product routes
 const config = require("./config");
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
 
 // MongoDB connection URL
 const dbURI = `mongodb+srv://${config.dbUsername}:${config.dbPassword}@test.vxujlr8.mongodb.net/?retryWrites=true&w=majority&appName=test`;
@@ -56,10 +57,12 @@ mongoose
   .catch((error) => console.error(error));
 
 /**
- * Use product route
+ * Use product and user routes
  *
- * Registers the product routes as a middleware in the Express app.
+ * Registers the product and user routes as a middleware in the Express app.
  *
  * The product routes are defined in the ./routes/products.js file.
+ * The user routes are defined in the ./routes/userRoute.js
  */
 app.use('/products', productRouter);
+app.use("/api/user", userRoute);

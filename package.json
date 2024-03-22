@@ -1,20 +1,27 @@
 {
-  "name": "integration-project",
+  "name": "cpsc-449-midterm-project",
   "version": "1.0.0",
-  "description": "",
+  "description": "Project 1",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js"
   },
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atakux/CPSC-449-Midterm-Project.git"
+  },
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/atakux/CPSC-449-Midterm-Project/issues"
+  },
+  "homepage": "https://github.com/atakux/CPSC-449-Midterm-Project#readme",
   "dependencies": {
     "bcrypt": "^5.1.1",
-    "express": "^4.18.2",
+    "express": "^4.18.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.1.2",
+    "mongoose": "^8.2.2",
     "nodemon": "^3.1.0"
   }
 }
