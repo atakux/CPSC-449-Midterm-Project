@@ -45,7 +45,28 @@ router.post("/login", async (req, res) => {
 
         return res.json({ status: "Ok", user: token });
     } else {
-        return res.json({ status: "error", user: false });
+        return res.json({ status: "error", user: "Wrong password" });
+    }
+});
+
+// Update user password
+router.patch("/pass", validateToken, async (req, res) => {
+    try {
+        const newPassword = await bcrypt.hash(req.body.password, 10);
+
+        const user = await User.findByIdAndUpdate(
+            res.locals.user._id.toString(),
+            { password: newPassword },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.json({ status: "error", error: "User Does Not Exist" });
+        }
+
+        res.status(200).send("Password updated");
+    } catch (error) {
+        res.status(500).send(error);
     }
 });
 
@@ -102,7 +123,14 @@ router.delete("/cart", validateToken, async (req, res) => {
 // Delete user account
 router.delete("/", validateToken, async (req, res) => {
     try {
-        await User.findByIdAndDelete(res.locals.user._id.toString());
+        const user = await User.findByIdAndDelete(
+            res.locals.user._id.toString()
+        );
+
+        if (!user) {
+            return res.json({ status: "error", error: "User Does Not Exist" });
+        }
+
         res.status(200).send("Account Deleted");
     } catch (error) {
         res.status(500).send(error);
