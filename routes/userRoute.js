@@ -86,6 +86,7 @@ router.delete("/cart", validateToken, async (req, res) => {
 
         const user = res.locals.user;
 
+        // Ensures only one product is deleted (in event of duplicates in cart)
         const index = user.cart.indexOf(req.body.product);
         if (index !== -1) {
             user.cart.splice(index, 1);
@@ -98,6 +99,7 @@ router.delete("/cart", validateToken, async (req, res) => {
     }
 });
 
+// Delete user account
 router.delete("/", validateToken, async (req, res) => {
     try {
         await User.findByIdAndDelete(res.locals.user._id.toString());
@@ -124,7 +126,7 @@ async function validateToken(req, res, next) {
             return res.json({ status: "error", error: "User Does Not Exist" });
         }
 
-        res.locals.user = user;
+        res.locals.user = user; // For passing user to next function
     } catch (error) {
         return res.json({ status: "error", error: "Invalid Token" });
     }
