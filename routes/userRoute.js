@@ -49,46 +49,12 @@ router.post("/login", async (req, res) => {
     }
 });
 
-router.get("/cart", async (req, res) => {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader;
-
-    if (token == null) return res.sendStatus(401);
-
-    try {
-        const decoded = jwt.verify(token, "secret123");
-
-        const user = await User.findOne({
-            email: decoded.email,
-        });
-
-        if (!user) {
-            return res.json({ status: "error", error: "Not a user" });
-        }
-
-        res.status(200).send(user.cart);
-    } catch (error) {
-        return res.json({ status: "error", error: "Invalid Token" });
-    }
+router.get("/cart", validateToken, async (req, res) => {
+    res.status(200).send(res.locals.user.cart);
 });
 
-router.post("/cart", async (req, res) => {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader;
-
-    if (token == null) return res.sendStatus(401);
-
+router.post("/cart", validateToken, async (req, res) => {
     try {
-        const decoded = jwt.verify(token, "secret123");
-
-        const user = await User.findOne({
-            email: decoded.email,
-        });
-
-        if (!user) {
-            return res.json({ status: "error", error: "Not a user" });
-        }
-
         const product = await Product.findOne({
             _id: req.body.product,
         });
@@ -98,17 +64,50 @@ router.post("/cart", async (req, res) => {
         }
 
         await User.updateOne(
-            { email: decoded.email },
+            { email: res.locals.user.email },
             { $push: { cart: req.body.product } }
         );
 
         return res.json({ status: "Ok" });
     } catch (error) {
-        return res.json({ status: "error", error: "Invalid Token" });
+        return res.json({ status: "error", error: "Not a user" });
     }
 });
 
-router.delete("/cart", async (req, res) => {
+router.delete("/cart", validateToken, async (req, res) => {
+    try {
+        const product = await Product.findOne({
+            _id: req.body.product,
+        });
+
+        if (!product) {
+            return res.json({ status: "error", error: "Not a product" });
+        }
+
+        const user = res.locals.user;
+
+        const index = user.cart.indexOf(req.body.product);
+        if (index !== -1) {
+            user.cart.splice(index, 1);
+            await user.save();
+        }
+
+        return res.json({ status: "Ok" });
+    } catch (error) {
+        return res.json({ status: "error", error: "Not a user" });
+    }
+});
+
+router.delete("/", validateToken, async (req, res) => {
+    try {
+        await User.findByIdAndDelete(res.locals.user._id.toString());
+        res.status(200).send("Account Deleted");
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+async function validateToken(req, res, next) {
     const authHeader = req.headers["authorization"];
     const token = authHeader;
 
@@ -122,40 +121,15 @@ router.delete("/cart", async (req, res) => {
         });
 
         if (!user) {
-            return res.json({ status: "error", error: "Not a user" });
+            return res.json({ status: "error", error: "User Does Not Exist" });
         }
 
-        const product = await Product.findOne({
-            _id: req.body.product,
-        });
-
-        if (!product) {
-            return res.json({ status: "error", error: "Not a product" });
-        }
-
-        const index = user.cart.indexOf(req.body.product);
-
-        if (index !== -1) {
-            user.cart.splice(index, 1);
-            await user.save();
-        }
-
-        return res.json({ status: "Ok" });
+        res.locals.user = user;
     } catch (error) {
         return res.json({ status: "error", error: "Invalid Token" });
     }
-});
 
-router.delete("/:id", async (req, res) => {
-    try {
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) {
-            res.status(404).send();
-        }
-        res.send(user);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-});
+    next();
+}
 
 module.exports = router;
