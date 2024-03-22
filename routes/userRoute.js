@@ -11,6 +11,7 @@ Defined routes:
     DELETE /cart - delete one item from cart
     DELETE / - delete user account
 */
+
 const express = require("express");
 const router = express.Router();
 const User = require("../model/user");
@@ -90,7 +91,7 @@ router.get("/cart", validateToken, async (req, res) => {
     res.status(200).send(res.locals.user.cart);
 });
 
-// Adds products to user cart in the form of the product's database id
+// Adds a product to a user's cart in the form of the product's database id
 router.post("/cart", validateToken, async (req, res) => {
     try {
         const product = await Product.findOne({
