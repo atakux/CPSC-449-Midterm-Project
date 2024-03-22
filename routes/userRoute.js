@@ -14,8 +14,8 @@ Defined routes:
 
 const express = require("express");
 const router = express.Router();
-const User = require("../model/user");
-const Product = require("../model/product");
+const User = require("../models/user");
+const Product = require("../models/Product");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
