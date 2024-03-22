@@ -1,3 +1,7 @@
+/*
+This model defines the user/customer role for an ecommerce platform.
+*/
+
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({

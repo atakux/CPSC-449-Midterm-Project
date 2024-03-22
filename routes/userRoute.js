@@ -1,3 +1,16 @@
+/*
+This module provides basic CRUD operations for the user/customer role.
+These include operations on the user account and associated shopping cart.
+
+Defined routes:
+    POST /register - register new user
+    POST /login - log user in and return authentication token
+    PATCH /pass - update user password
+    GET /cart - return user cart
+    POST /cart - add one product to cart
+    DELETE /cart - delete one item from cart
+    DELETE / - delete user account
+*/
 const express = require("express");
 const router = express.Router();
 const User = require("../model/user");
@@ -5,6 +18,7 @@ const Product = require("../model/product");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+// Adds a new user to the database
 router.post("/register", async (req, res) => {
     try {
         const newPassword = await bcrypt.hash(req.body.password, 10);
@@ -20,6 +34,7 @@ router.post("/register", async (req, res) => {
     }
 });
 
+// Returns an authentication token to the user after login
 router.post("/login", async (req, res) => {
     const user = await User.findOne({
         email: req.body.email,
@@ -70,10 +85,12 @@ router.patch("/pass", validateToken, async (req, res) => {
     }
 });
 
+// Returns content of a user's cart consisting of product database ids
 router.get("/cart", validateToken, async (req, res) => {
     res.status(200).send(res.locals.user.cart);
 });
 
+// Adds products to user cart in the form of the product's database id
 router.post("/cart", validateToken, async (req, res) => {
     try {
         const product = await Product.findOne({
@@ -95,6 +112,7 @@ router.post("/cart", validateToken, async (req, res) => {
     }
 });
 
+// Removes one product from a user's cart
 router.delete("/cart", validateToken, async (req, res) => {
     try {
         const product = await Product.findOne({
@@ -137,6 +155,7 @@ router.delete("/", validateToken, async (req, res) => {
     }
 });
 
+// Middleware for validating a request's authentication token
 async function validateToken(req, res, next) {
     const authHeader = req.headers["authorization"];
     const token = authHeader;
