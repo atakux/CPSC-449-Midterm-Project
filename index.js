@@ -74,4 +74,4 @@ mongoose
  */
 app.use('/products', productRouter);
 app.use("/api/user", userRoute);
-app.use("/deleteUser", adminRoute);
+app.use("/admin", adminRoute);

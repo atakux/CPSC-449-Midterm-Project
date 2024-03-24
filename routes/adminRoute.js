@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
 const config = require('../config');
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 
 const basicAuth = (req, res, next) => {
@@ -31,7 +33,7 @@ const basicAuth = (req, res, next) => {
 
 
 // DELETE route to delete a user by ID with basic authentication
-router.delete('/', basicAuth, async (req, res) => {
+router.delete('/deleteUser', basicAuth, async (req, res) => {
     const userId = req.body.id; // Extract user ID from request body
 
     try {
@@ -50,6 +52,44 @@ router.delete('/', basicAuth, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+
+
+
+
+// PUT route to update a user's username, email, and password
+router.patch('/updateUser', basicAuth, async (req, res) => {
+    const { id, name, email, password } = req.body;
+
+    try {
+        // Find the user by ID
+        const user = await User.findById(id);
+
+        // If user not found, return 404
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Encrypt the password
+        const encryptedPassword = await bcrypt.hash(password, 10);
+
+        // Update user data
+        user.name = name;
+        user.email = email;
+        user.password = encryptedPassword; // Make sure to hash the password before saving in a real application
+
+        // Save the updated user
+        const updatedUser = await user.save();
+
+        // Respond with success message and updated user data
+        res.json({ message: 'User updated', updatedUser });
+    } catch (error) {
+        // Handle errors
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 
 
 
