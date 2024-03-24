@@ -12,6 +12,7 @@ const express = require("express");
 const userRoute = require("./routes/userRoute"); // Import user routes
 const Product = require('./models/Product'); // Import Product model
 const productRouter = require('./routes/products'); // Import product routes
+const adminRoute = require('./routes/adminRoute'); // Import admin routes
 
 // Import config file to retrieve retailer's username and password
 const config = require("./config");
@@ -21,6 +22,13 @@ app.use(express.json());
 
 // MongoDB connection URL
 const dbURI = `mongodb+srv://${config.dbUsername}:${config.dbPassword}@test.vxujlr8.mongodb.net/?retryWrites=true&w=majority&appName=test`;
+
+
+const cors = require('cors');
+app.use(cors({
+  origin: 'https://localhost:3000'
+}));
+
 
 /**
  * Connect to MongoDB
@@ -66,3 +74,4 @@ mongoose
  */
 app.use('/products', productRouter);
 app.use("/api/user", userRoute);
+app.use("/deleteUser", adminRoute);
