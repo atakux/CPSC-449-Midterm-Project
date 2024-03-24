@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+const Product = require("../models/Product");
 const config = require('../config');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -57,7 +58,7 @@ router.delete('/deleteUser', basicAuth, async (req, res) => {
 
 
 
-// PUT route to update a user's username, email, and password
+// PATCH route to update a user's username, email, and password
 router.patch('/updateUser', basicAuth, async (req, res) => {
     const { id, name, email, password } = req.body;
 
@@ -89,6 +90,28 @@ router.patch('/updateUser', basicAuth, async (req, res) => {
     }
 });
 
+
+
+// DELETE route to delete a product by ID with basic authentication
+router.delete('/deleteProduct', basicAuth, async (req, res) => {
+    const productId = req.body.id; // Extract product ID from request body
+
+    try {
+        // Find and delete the product by ID
+        const deletedProduct = await Product.findByIdAndDelete(productId);
+        
+        // If product not found, return 404
+        if (!deletedProduct) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        
+        // Respond with success message
+        res.json({ message: 'Product deleted', deletedProduct });
+    } catch (error) {
+        // Handle errors
+        res.status(500).json({ message: error.message });
+    }
+});
 
 
 
