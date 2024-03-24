@@ -90,11 +90,17 @@ router.patch("/pass", validateToken, async (req, res) => {
 //Uses the id stored in the cart to find the full descriptions
 //If any objects in the cart are no longer available, will notify the customer 
 router.get("/cart", validateToken, async (req, res) => {
+
+    //store cart in new array to make it easier
     const carts = res.locals.user.cart;
 
     const cartResults = [];
+
+    //these are just counters for the loops"
     validProducts = 0;
     invalidProducts = 0;
+
+    //loops over the IDs, then returns full descriptions and updates counters
     for(item in carts){
         const product = await Product.findOne({_id: carts[item],});
         if(!product){
