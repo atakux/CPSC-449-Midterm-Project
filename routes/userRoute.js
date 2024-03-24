@@ -86,9 +86,28 @@ router.patch("/pass", validateToken, async (req, res) => {
     }
 });
 
-// Returns content of a user's cart consisting of product database ids
+// Returns content of a user's cart 
+//Uses the id stored in the cart to find the full descriptions
+//If any objects in the cart are no longer available, will notify the customer 
 router.get("/cart", validateToken, async (req, res) => {
-    res.status(200).send(res.locals.user.cart);
+    const carts = res.locals.user.cart;
+
+    const cartResults = [];
+    validProducts = 0;
+    invalidProducts = 0;
+    for(item in carts){
+        const product = await Product.findOne({_id: carts[item],});
+        if(!product){
+            invalidProducts++;
+        }            
+        else{
+            cartResults[validProducts] = product;
+            validProducts++;
+        }
+
+    }
+    cartResults[validProducts] = "Products that are no longer available in the cart: " + invalidProducts;
+    res.status(200).send(cartResults);
 });
 
 // Adds a product to a user's cart in the form of the product's database id
