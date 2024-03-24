@@ -4,9 +4,9 @@ const User = require("../models/user");
 const Product = require("../models/Product");
 const config = require('../config');
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 
 
+// Basic authentication middleware
 const basicAuth = (req, res, next) => {
     // Extract credentials from 'Authorization' header
     const authHeader = req.headers.authorization;
@@ -107,6 +107,39 @@ router.delete('/deleteProduct', basicAuth, async (req, res) => {
         
         // Respond with success message
         res.json({ message: 'Product deleted', deletedProduct });
+    } catch (error) {
+        // Handle errors
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
+
+
+
+// PATCH route to update a product's name, price, and description
+router.patch('/updateProduct', basicAuth, async (req, res) => {
+    const { id, name, price, description} = req.body;
+
+    try {
+        // Find the user by ID
+        const product = await Product.findById(id);
+
+        // If user not found, return 404
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        // Update product data
+        product.name = name;
+        product.price = price;
+        product.description = description;
+
+        // Save the updated product
+        const updatedProduct = await product.save();
+
+        // Respond with success message and updated user data
+        res.json({ message: 'Product updated', updatedProduct });
     } catch (error) {
         // Handle errors
         res.status(500).json({ message: error.message });
