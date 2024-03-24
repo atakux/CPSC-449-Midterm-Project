@@ -3,18 +3,6 @@
 ## Description
 This is the midterm project for CPSC 449. The goal of the project is to create a simple RESTful API for a store that sells products. The API should allow clients to view a list of products, view a specific product, create a new product, update an existing product, and delete a product.
 
-## Dependencies
-- Express
-- MongoDB
-- Mongoose
-- Bcrypt
-- JsonWebToken
-- Nodemon
-
-## Dependencies Installation
-To install the dependencies, run the following command in the terminal:
-`npm install`
-
 ## To run the project
 1. Install npm dependencies: `npm install`
 2. Start the server locally: `npm start`
