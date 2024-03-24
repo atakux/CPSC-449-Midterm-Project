@@ -8,10 +8,14 @@
 
 const mongoose = require("mongoose");
 const express = require("express");
+require('dotenv').config();
 
+const publicProductsRouter = require('./routes/publicProducts'); // Adjust the path according to your structure
 const userRoute = require("./routes/userRoute"); // Import user routes
 const Product = require('./models/Product'); // Import Product model
 const productRouter = require('./routes/products'); // Import product routes
+const adminRoute = require('./routes/adminRoute'); // Import admin routes
+const retailerRoute = require('./routes/retailer'); // Import retailer routes
 
 // Import config file to retrieve retailer's username and password
 const config = require("./config");
@@ -21,6 +25,13 @@ app.use(express.json());
 
 // MongoDB connection URL
 const dbURI = `mongodb+srv://${config.dbUsername}:${config.dbPassword}@test.vxujlr8.mongodb.net/?retryWrites=true&w=majority&appName=test`;
+
+
+const cors = require('cors');
+app.use(cors({
+  origin: 'https://localhost:3000'
+}));
+
 
 /**
  * Connect to MongoDB
@@ -64,5 +75,9 @@ mongoose
  * The product routes are defined in the ./routes/products.js file.
  * The user routes are defined in the ./routes/userRoute.js
  */
+
+app.use('/api', publicProductsRouter);
 app.use('/products', productRouter);
 app.use("/api/user", userRoute);
+app.use("/admin", adminRoute);
+app.use("/retailer", retailerRoute);

@@ -1,4 +1,5 @@
 /*
+routes/userRoute.js
 This module provides basic CRUD operations for the user/customer role.
 These include operations on the user account and associated shopping cart.
 
@@ -22,46 +23,49 @@ const jwt = require("jsonwebtoken");
 // Adds a new user to the database
 router.post("/register", async (req, res) => {
     try {
-        const newPassword = await bcrypt.hash(req.body.password, 10);
-        await User.create({
-            name: req.body.name,
-            email: req.body.email,
-            password: newPassword,
+        const { name, email, password, role = 'customer' } = req.body; // Default role is 'customer'
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            role// Store the role in the user document
         });
 
-        res.status(200).send("User Added to the Database");
-    } catch (err) {
-        res.json({ staus: "error", error: "Duplicate email" });
+        res.status(201).json({ message: "User registered successfully", userId: newUser._id, role: newUser.role });
+    } catch (error) {
+        if (error.code === 11000) { // Duplicate key error code
+            res.status(400).json({ status: "error", error: "Email already in use" });
+        } else {
+            res.status(500).json({ status: "error", error: error.message });
+        }
     }
 });
 
 // Returns an authentication token to the user after login
 router.post("/login", async (req, res) => {
-    const user = await User.findOne({
-        email: req.body.email,
-    });
+    const { email, password } = req.body;
 
-    if (!user) {
-        return res.json({ status: "error", error: "Invalid Login" });
-    }
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ status: "error", error: "Invalid login credentials" });
+        }
 
-    const isPasswordValid = await bcrypt.compare(
-        req.body.password,
-        user.password
-    );
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ status: "error", error: "Invalid login credentials" });
+        }
 
-    if (isPasswordValid) {
-        const token = jwt.sign(
-            {
-                name: user.name,
-                email: user.email,
-            },
-            "secret123"
-        );
+        const token = jwt.sign({
+            userId: user._id,
+            role: user.role // Include role in the token
+        }, "secret123");
 
-        return res.json({ status: "Ok", user: token });
-    } else {
-        return res.json({ status: "error", user: "Wrong password" });
+        res.json({ status: "Ok", token, role: user.role });
+    } catch (error) {
+        res.status(500).json({ status: "error", error: error.message });
     }
 });
 
