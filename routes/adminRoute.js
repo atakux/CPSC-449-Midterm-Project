@@ -4,9 +4,6 @@ const User = require("../models/user");
 const config = require('../config');
 
 
-
-//////////////////// CHANGE THIS TO adminUsername and adminPassword
-
 const basicAuth = (req, res, next) => {
     // Extract credentials from 'Authorization' header
     const authHeader = req.headers.authorization;
@@ -31,9 +28,8 @@ const basicAuth = (req, res, next) => {
     }
   };
 
-  ///////////////////////////////////////////////
 
-/////////////////////////////////////////////// EDIT THIS SO IT REQUIRES basicAuth 
+
 // DELETE route to delete a user by ID with basic authentication
 router.delete('/', basicAuth, async (req, res) => {
     const userId = req.body.id; // Extract user ID from request body
@@ -54,6 +50,8 @@ router.delete('/', basicAuth, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+
 
 
 module.exports = router;
