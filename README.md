@@ -1,4 +1,10 @@
 # CPSC-449-Midterm-Project
+# The Horsemen:
+# - Angela DeLeo
+# - Roman Saddi
+# - Joshua Lai
+# - Belal Skaik
+# - Nicholas Haga
 
 ## Description
 This is the midterm project for CPSC 449. The goal of the project is to create a simple RESTful API for a store that sells products. Authentication is based on tokens and email/password login.
