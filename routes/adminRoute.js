@@ -150,4 +150,17 @@ router.patch('/updateProduct', basicAuth, async (req, res) => {
 
 
 
+// Route to get all users
+router.get('/getUsers', basicAuth, async (req, res) => {
+    try {
+        const users = await User.find();
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
+
+
 module.exports = router;
