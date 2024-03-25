@@ -35,6 +35,19 @@ Example product data:
 }
 ```
 
+
+## Testing Admin Component
+For testing the Admin component, follow these instructions:
+
+1. Open Postman and type `https://localhost:3000` into the URL bar
+2. To delete a user, send a DELETE request to `https://localhost:3000/admin/deleteUser` with the ID of the user (see the "User Data" for more information).
+3. To update a user, send a PATCH request to `https://localhost:3000/admin/updateUser` with the new credentials you would like to update the user with (see the "User Data" for more information).
+4. To delete a product, send a DELETE request to `https://localhost:3000/admin/deleteProduct` with the ID of the product (see the "Product Data" for more information).
+5. To update a product, send a PATCH request to `https://localhost:3000/admin/updateProduct` with the new product information you would like to update the product with (see the "Product Data" for more information).
+6. To pull all users, send a GET request to `https://localhost:3000/admin/getUsers`.
+
+
+
 ## Testing Users Component
 For testing the users component, follow these instructions:
 
