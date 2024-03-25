@@ -2,9 +2,13 @@
 const mongoose = require('mongoose');
 
 const retailerSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  storeName: { type: String, required: true },
-  products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    storeName: { type: String, required: true },
+    products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
 });
 
-module.exports = mongoose.model('Retailer', retailerSchema);
+const Retailer = new mongoose.model('Retailer', retailerSchema);
+
+module.exports = Retailer;

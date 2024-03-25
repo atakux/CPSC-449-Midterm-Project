@@ -59,27 +59,32 @@ router.post('/register', async (req, res) => {
         const { name, email, password, storeName } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = await User.create({
+        const retailer = await Retailer.create({
             name: name,
             email: email,
             password: hashedPassword,
             role: 'retailer',
+            storeName: storeName,
         });
 
-        const retailer = await Retailer.create({
-            user: user._id,
+        const user = await User.create({
+            _id: retailer._id,
+            name: name,
+            email: email,
+            password: hashedPassword,
+            role: 'retailer',
             storeName: storeName,
-        })
+        });
 
         res.status(201).json({
             _id: user._id,
             name: user.name,
             email: user.email,
             role: user.role,
-            storeName: retailer.storeName
+            storeName: user.storeName
         });
     } catch (err) {
-        res.json({ staus: "error", error: "Duplicate email" });
+        res.json({ status: "error", error: err.message });
     }
 });
 
