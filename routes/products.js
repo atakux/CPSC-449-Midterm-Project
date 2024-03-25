@@ -31,6 +31,20 @@ const Retailer = require('../models/retailer');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+/**
+ * Validate that a request has a valid authentication token.
+ * 
+ * This middleware function checks that the request contains a valid
+ * authentication token. The token is extracted from the 'Authorization'
+ * header, and it is verified using the secret key 'secret123'.
+ * 
+ * If the token is valid, the middleware will call the next function in the
+ * chain, otherwise it will return a 401 (Unauthorized) response to the client.
+ * 
+ * @param {Object} req The request object
+ * @param {Object} res The response object
+ * @param {Function} next The next function in the chain
+ */
 const validateToken = async (req, res, next) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader; // Bearer TOKEN
@@ -54,6 +68,17 @@ const validateToken = async (req, res, next) => {
 };
 
 
+/**
+ * Registers a new retailer
+ * @route POST /api/products/register
+ * @group products
+ * @param {string} name.query.required - Name of the retailer
+ * @param {string} email.query.required - Email of the retailer
+ * @param {string} password.query.required - Password of the retailer
+ * @param {string} storeName.query.required - Store name of the retailer
+ * @returns {object} 201 - Created
+ * @returns {Error} 400 - Bad Request
+ */
 router.post('/register', async (req, res) => {
     try {
         const { name, email, password, storeName } = req.body;
@@ -88,6 +113,27 @@ router.post('/register', async (req, res) => {
     }
 });
 
+/**
+ * Log in as a retailer
+ * 
+ * This endpoint logs in a retailer.
+ * 
+ * Send a "POST" request to '/login' with JSON body of the form:
+ * {
+ *     "email": "email@example.com",
+ *     "password": "password"
+ * }
+ * If successful, the response will be of the form:
+ * {
+ *     "status": "Ok",
+ *     "user": "token"
+ * }
+ * where "token" is a JSON Web Token that can be used to authenticate requests to other endpoints.
+ * 
+ * Returns 403 if the user does not exist or is not a retailer.
+ * Returns 400 if the request body is not valid JSON or does not contain all required fields.
+ * Returns 500 if there is a server error.
+ */
 router.post('/login', async (req, res) => {
     try { 
         const { email, password } = req.body;
