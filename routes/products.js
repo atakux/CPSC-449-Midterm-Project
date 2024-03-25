@@ -26,92 +26,94 @@
 const express = require("express");
 const router = express.Router();
 const Product = require('../models/Product');
+const User = require('../models/user'); 
+const Retailer = require('../models/retailer');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-// Import config file to retrieve retailer's username and password
-const config = require('../config');
+const validateToken = async (req, res, next) => {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader; // Bearer TOKEN
 
-/**
- * Basic authentication middleware.
- *
- * This middleware checks that the request is authenticated with valid
- * credentials (username and password). If the credentials are invalid, it sends a
- * 401 Unauthorized response. If the credentials are valid, it calls the next
- * middleware.
- *
- * The credentials are extracted from the 'Authorization' header of the request.
- * If the header is not present or does not start with 'Basic ', the request is
- * considered unauthenticated and a 401 Unauthorized response is sent.
- *
- * The 'Authorization' header is expected to be in the form "Basic <credentials>",
- * where <credentials> is a base64 encoded string of the form
- * "<username>:<password>".
- *
- * The username and password are extracted from the base64 decoded string and
- * compared to the values in the config.js file. If they match, the request is
- * considered authenticated and the next middleware is called. Otherwise, a 401
- * Unauthorized response is sent.
- */
-const basicAuth = (req, res, next) => {
-  // Extract credentials from 'Authorization' header
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
-    // No or invalid 'Authorization' header, unauthenticated request
-    res.status(401).send('Unauthorized');
-    return;
-  }
+    if (token == null) return res.sendStatus(401);
 
-  // Decode base64 encoded credentials
-  const base64Credentials = authHeader.split(' ')[1];
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [username, password] = credentials.split(':');
+    try {
+        const decoded = jwt.verify(token, "secret123");
+        const user = await User.findOne({ email: decoded.email });
 
-  // Check if credentials match config.js
-  if (username === config.dbUsername && password === config.dbPassword) {
-    // Authenticated, proceed to the next middleware
-    next();
-  } else {
-    // Invalid credentials, unauthorized request
-    res.status(401).send('Unauthorized');
-  }
+        if (!user) {
+            return res.status(403).json({ status: "error", error: "User does not exist" });
+        }
+
+        req.user = user;
+        next();
+
+    } catch (error) {
+        return res.status(401).json({ status: "error", error: "Invalid Token" });
+    }
 };
 
-/**
- * Create a new product
- * 
- * This endpoint POSTs a new product.
- * 
- * Send a "POST" request to '/products' with the new product data in the request body.
- * The request body should be a JSON object with the following keys:
- * { 
- *      name: 'Product name',
- *      price: 123.45,
- *      description: 'Product description',
- * }
- * 
- * The response will be a JSON object with the product's data.
- * 
- * Format: 
- * { 
- *      _id: '123', 
- *      name: 'Product name', 
- *      price: 123.45,
- *      description: 'Product description',
- * } 
- *
- * The request must be authenticated, which means that you must provide
- * the retailer's username and password via HTTP basic authentication. 
- * The credentials can be found in the config.js file.
- * 
- */
-router.post('/', basicAuth, async (req, res) => {
+
+router.post('/register', async (req, res) => {
     try {
-        const product = new Product(req.body);
-        await product.save();
-        res.status(201).json(product);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
+        const { name, email, password, storeName } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            name: name,
+            email: email,
+            password: hashedPassword,
+            role: 'retailer',
+        });
+
+        const retailer = await Retailer.create({
+            user: user._id,
+            storeName: storeName,
+        })
+
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            storeName: retailer.storeName
+        });
+    } catch (err) {
+        res.json({ staus: "error", error: "Duplicate email" });
     }
 });
+
+router.post('/login', async (req, res) => {
+    try { 
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email: email });
+
+        if (!user || user.role !== 'retailer') {
+            return res.status(403).json({ status: "error", error: "User does not exist" });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (isPasswordValid) {
+            const token = jwt.sign(
+                {
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
+                "secret123"
+            );
+
+            res.json({ status: "Ok", user: token });
+        } else {
+            return res.json({ status: "error", user: "Wrong password" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 /**
  * Get all products
@@ -160,6 +162,53 @@ router.get('/:id', getProduct, (req, res) => {
     res.json(res.product);
 });
 
+router.get("/myProducts", validateToken, async (req, res) => {
+    try {
+        const products = await Product.find({ retailer: req.user._id });
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/**
+ * Create a new product
+ * 
+ * This endpoint POSTs a new product.
+ * 
+ * Send a "POST" request to '/products' with the new product data in the request body.
+ * The request body should be a JSON object with the following keys:
+ * { 
+ *      name: 'Product name',
+ *      price: 123.45,
+ *      description: 'Product description',
+ * }
+ * 
+ * The response will be a JSON object with the product's data.
+ * 
+ * Format: 
+ * { 
+ *      _id: '123', 
+ *      name: 'Product name', 
+ *      price: 123.45,
+ *      description: 'Product description',
+ * } 
+ *
+ * The request must be authenticated, which means that you must provide
+ * the retailer's username and password via HTTP basic authentication. 
+ * The credentials can be found in the config.js file.
+ * 
+ */
+router.post('/', validateToken, async (req, res) => {
+    try {
+        const product = new Product(req.body);
+        await product.save();
+        res.status(201).json(product);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
 /**
  * Update a product
  * 
@@ -198,7 +247,7 @@ router.get('/:id', getProduct, (req, res) => {
  * The credentials can be found in the config.js file.
  * 
  */
-router.patch('/:id', basicAuth, getProduct, async (req, res) => {
+router.patch('/:id', validateToken, getProduct, async (req, res) => {
     if (req.body.name != null) {
         res.product.name = req.body.name;
     }
@@ -233,7 +282,7 @@ router.patch('/:id', basicAuth, getProduct, async (req, res) => {
  * The response will be a JSON object with a single key:value pair:
  * { message: 'Product deleted' }.
  */
-router.delete('/:id', basicAuth, getProduct, async (req, res) => {
+router.delete('/:id', validateToken, getProduct, async (req, res) => {
     try {
         await res.product.deleteOne();
         res.json({ message: 'Product deleted' });
@@ -278,7 +327,7 @@ async function getProduct(req, res, next) {
     res.product = product;
     // Call the next function in the route chain
     next();
-}
+};
 
 // Export the router
 module.exports = router;
