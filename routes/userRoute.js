@@ -97,22 +97,24 @@ router.get("/cart", validateToken, async (req, res) => {
     const cartResults = [];
 
     //these are just counters for the loops"
-    validProducts = 0;
-    invalidProducts = 0;
+    productsCounter = 0;
+    invalidCounter = 0;
 
     //loops over the IDs, then returns full descriptions and updates counters
     for(item in carts){
         const product = await Product.findOne({_id: carts[item],});
         if(!product){
-            invalidProducts++;
+            invalidCounter++;
+            cartResults[productsCounter] = "No longer available: " + carts[productsCounter];
+            productsCounter++;
         }            
         else{
-            cartResults[validProducts] = product;
-            validProducts++;
+            cartResults[productsCounter] = product;
+            productsCounter++;
         }
 
+
     }
-    cartResults[validProducts] = "Products that are no longer available in the cart: " + invalidProducts;
     res.status(200).send(cartResults);
 });
 
